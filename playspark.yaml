@@ -1,0 +1,29 @@
+- name: The one play
+  hosts: all
+  tasks:
+  - name: Check if Java is installed
+    ansible.builtin.shell: 
+      cmd: java -version
+    register: java_check
+    ignore_errors: true
+
+  - name: Install Java if not present
+    ansible.builtin.package:
+      name: openjdk-11-jdk
+      state: present
+    become: yes
+    when: java_check.failed
+
+  - name: Verify Java installation
+    ansible.builtin.shell:
+      cmd: java -version
+    register: java_verify
+    changed_when: false
+    failed_when: java_verify.rc != 0
+    
+ - name: Install and configure Apache Spark
+   hosts: spark-nodes
+   become: yes  # Apply elevated privileges to all tasks in this play
+   roles:
+     - spark
+
